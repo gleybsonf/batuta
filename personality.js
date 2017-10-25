@@ -79,6 +79,7 @@ function personalidade(req,res,itens, name){
 				}
 				console.log("ela é frevo", random);
 				req.session.tipoFrevo = tipoFrevo;
+
 				req.session.save();
 				res.render('playFrevo', tipoFrevo);
 
@@ -96,7 +97,7 @@ function personalidade(req,res,itens, name){
 	},
 	 function(err) {
 	 	random = Math.floor(Math.random() * 3);
-		switch (ramdom) {
+		switch (random) {
 			case 0:
 				tipoFrevo.idMusica = musicasFrevoRua[Math.floor(Math.random() * musicasFrevoRua.length)];
 				tipoFrevo.imagem = '/images/frevo-de-rua.jpg';
@@ -233,8 +234,11 @@ function match (req, res, arrayPersonalidade, name) {
 	console.log('variaveil quiz');
 	console.log(name);
 	console.log(req.session.index);
+	tipoFrevo.posts = req.session.qtdPosts;
 	req.session.tipoFrevo = tipoFrevo;
 	req.session.save();
+	console.log('tipo de frevo');
+	console.log(tipoFrevo);
 	res.render('playFrevo', tipoFrevo);
 
 	

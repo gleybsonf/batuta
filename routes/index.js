@@ -23,4 +23,9 @@ router.get('/', function(req, res, next) {
   res.render('login');
 });
 
+router.get('/chart', function(req, res, next) {
+  res.render('chart');
+});
+
+
 module.exports = router;

@@ -9,32 +9,39 @@
   <body>
 
     <div class="container-fluid batuta-container">
+      
       <div class="row">
         <div class="col-md-12">
-            <div class="card col-md-6 col-sm-12 rounded">
-                <div class="batuta-card" style="min-height:200px">
-                  <div class="col-md-4">
+            <div class=" batuta-card card col-md-6 col-sm-12 rounded">
+                <div class="" style="min-height:200px">
+                  <div class="col-md-12">
                   <div class="card-img-top">
-                    <img src="<%= imagem %>" alt="Card image cap">
+                    <img src="/images/frevo-cancao.jpg" alt="Card image cap">
                    
                   </div> 
                   <div class="card-body">
-                      <iframe src="https://open.spotify.com/embed?uri=spotify:track:<%= idMusica %>" width="100%" height="80px" allowtransparency="true" class="batuta-spotify col-md-12"></iframe>
+                      <iframe src="https://open.spotify.com/embed?uri=spotify:track:5GnjSj6O0ZNpb1KvfZr1Vx" width="100%" height="80px" allowtransparency="true" class="batuta-spotify col-md-12"></iframe>
                   </div>
                 </div>
-                  <div class="col col-md-8">
-                    <h1 class="frevo-title"><%= nome %></h1>
-                    <p class="frevo-subtitle">Maestro, tua batuta é de <%= nome %>.</p>
-                    <p class="frevo-description"><%= descricao %><br><br>Gostou? Ajude a melhorar o Batuta indicando qual tua preferência de frevo.</p>
+                  <div class="col col-md-12">
+                    <h1 class="frevo-title"></h1>
+                    <p class="frevo-subtitle">Maestro, tua batuta é de .</p>
+                    <p class="frevo-description">ao<br><br>Gostou? Ajude a melhorar o Batuta indicando qual tua preferência de frevo.</p>
                   </div> 
                 </div> 
               </div>
-
+		
           <div class=" col-md-6 col-sm-12 rounded ">
-            <div class="batuta-card" style="min-height:200px">
-              <canvas class="chart" id="myChart" width="400" height="400"></canvas>
+			<div class="batuta-card" style="min-height:200px">
+				<canvas class="chart" id="myChart" width="400" height="400"></canvas>
             </div>
           </div>
+
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+
         </div>
       </div>
       <div class="row">
@@ -48,7 +55,7 @@
                 <h4 class="card-title">Frevo-de-rua</h4>
                 <p class="card-text">Primeiro gênero a surgir, é puramente instrumental e único no mundo. Este frevo é destinado a ser dançado.</p>
                 <form action="/pi/obrigado" method="post">
-                    <input class="btn btn-primary" name=modelo type="hidden" value='<%- JSON.stringify(modelo) %>'>
+                    <input class="btn btn-primary" name=modelo type="hidden" value=''>
                     <input class="btn btn-primary" name=tipo type="hidden" value='Frevo-de-rua'>
                     <input class="btn btn-primary" name=frevo type="submit" value='Esse é meu frevo!'>
                 </form>
@@ -64,7 +71,7 @@
                   <h4 class="card-title">Frevo-de-bloco</h4>
                   <p class="card-text">Executado por orquestra de pau-e-cordas que tem seu aparecimento relacionado ao início da efetiva participação da mulher na folia de rua do Recife.</p>
                   <form action="/pi/obrigado" method="post">
-                    <input class="btn btn-primary" name=modelo type="hidden" value='<%- JSON.stringify(modelo) %>'>
+                    <input class="btn btn-primary" name=modelo type="hidden" value=''>
                     <input class="btn btn-primary" name=tipo type="hidden" value='Frevo-de-Bloco'>
                     <input class="btn btn-primary" name=frevo type="submit" value='Esse é meu frevo!'>
                   </form>
@@ -80,7 +87,7 @@
                 <h4 class="card-title">Frevo-canção</h4>
                 <p class="card-text">Apresentando uma melodia mais cantável e andamento mais lento que o frevo-de-rua, este frevo é popular por grandes intérpretes e composições.</p>
                 <form action="/pi/obrigado" method="post">
-                  <input class="btn btn-primary" name=modelo type="hidden" value='<%- JSON.stringify(modelo) %>'>
+                  <input class="btn btn-primary" name=modelo type="hidden" value=''>
                   <input class="btn btn-primary" name=tipo type="hidden" value='Frevo-canção'>
                   <input class="btn btn-primary" name=frevo type="submit" value='Esse é meu frevo!'>
                 </form>
@@ -94,55 +101,54 @@
     <script src="../chart.js/dist/Chart.min.js"></script>
     <script src="/bootstrap/dist/js/bootstrap.min.js" type="javascript"></script>
     <script>
-        var ctx = document.getElementById("myChart").getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'horizontalBar',
-            //FontColor: "#000000",
-            data: {
-                labels: ["<%= modelo.personality[0].name %>", "<%= modelo.personality[1].name %>", "<%= modelo.personality[2].name %>", "<%= modelo.personality[3].name %>", "<%= modelo.personality[4].name %>"],
-                datasets: [{
-                    //label : '#000000',
-                    data: [<%= modelo.personality[0].percentile*100 %>, <%= modelo.personality[1].percentile %>*100, <%= modelo.personality[2].percentile %>*100, <%= modelo.personality[3].percentile %>*100, <%= modelo.personality[4].percentile %>*100],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-              responsive:true,
-        legend: {
-            labels: {
-                fontColor: '#4d4d4d' //set your desired color
-            }
-        },
-              scales: {
-                  xAxes: [{
-                      ticks: {
-                        suggestedMax : 100,
-                          beginAtZero:false
+	      var ctx = document.getElementById("myChart").getContext('2d');
+	      var myChart = new Chart(ctx, {
+	          type: 'horizontalBar',
+	          //FontColor: "#000000",
+	          data: {
+	              labels: ["Red", "Blue", "Yellow", "Green"],
+	              datasets: [{
+	                  //label : '#000000',
+	                  data: [12, 15, 3, 5],
+	                  backgroundColor: [
+	                      'rgba(255, 99, 132, 1)',
+	                      'rgba(54, 162, 235, 1)',
+	                      'rgba(255, 206, 86, 1)',
+	                      'rgba(75, 192, 192, 1)',
+	                      'rgba(153, 102, 255, 1)',
+	                      'rgba(255, 159, 64, 1)'
+	                  ],
+	                  borderColor: [
+	                      'rgba(255,99,132,1)',
+	                      'rgba(54, 162, 235, 1)',
+	                      'rgba(255, 206, 86, 1)',
+	                      'rgba(75, 192, 192, 1)',
+	                      'rgba(153, 102, 255, 1)',
+	                      'rgba(255, 159, 64, 1)'
+	                  ],
+	                  borderWidth: 1
+	              }]
+	          },
+	          options: {
+	          	responsive:true,
+				legend: {
+				    labels: {
+				        fontColor: '#4d4d4d' //set your desired color
+				    }
+				},
+	            scales: {
+	                xAxes: [{
+	                    ticks: {
+	            	       	suggestedMax : 100,
+	                        beginAtZero:false
 
-                      }
-                  }]
+	                    }
+	                }]
                 }
-          }
-    });
+	        }
+		});
 
-      Chart.defaults.global.defaultFontColor = "4d4d4d";
+	    Chart.defaults.global.defaultFontColor = "4d4d4d";
     </script>
-  <p><%= modelo.needs %></p>
   </body>
 </html>

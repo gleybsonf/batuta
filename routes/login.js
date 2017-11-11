@@ -18,8 +18,8 @@ var app = require ('../app.js');
 
 
 passport.use(new Strategy({
-  clientID: "821548781349833",//process.env.CLIENT_ID,
-  clientSecret: "bcd02f7ae7100ac0396df7dde70d54ac",//process.env.CLIENT_SECRET,
+  clientID: "146241416116297",//process.env.CLIENT_ID,
+  clientSecret: "e2e2ac3cdbd867cc94daa3f4b3f4217a",//process.env.CLIENT_SECRET,
   callbackURL: '/login/facebook/return'
   //callbackURL: 'http://localhost:3000/login/facebook/return'
 },

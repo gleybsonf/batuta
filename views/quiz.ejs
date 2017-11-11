@@ -4,34 +4,152 @@
     <title>Quiz, Qual √© seu frevo?</title>
     <link rel="stylesheet" href="/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel='stylesheet' href='/stylesheets/style.css' />
-    <script src="/js/jquery-1.11.1.min.js"></script> 
+    <script src="/js/jquery-3.2.1.min.js"></script> 
+    <script src="/socket.io/socket.io.js"></script> 
+    <script src="/js/client.js"></script> 
+    <script src="/js/javascript.helpers.js"></script> 
+    <script language="javascript">
+        // $(location).attr("href", "<%=loading %>");
+	//data: JSON.stringify(data),
+		            //contentType: 'application/x-www-form-urlencoded',
+		            //contentType: 'application/json',
+				//xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
+// FunÁ„o que cria o objeto XMLHttpRequest
+function getXMLRequest() {
+	try{ // tenta criar o objeto padr„o (ECMA script - Browser¥s filhos do mozilla
+		xmlhttp = new XMLHttpRequest();
+	}catch(ee){ // se n„o conseguir
+		try{ // tenta criar o objeto compativel com as versıes mais antigas do IE
+			xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+		}catch(e){ // Se falhar
+			try{ // Cria o objeto compativel com o IE 5.5 ou superior
+				xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+			}catch(E){ // Retorna false se o browser n„o tiver suporte
+				xmlhttp = false;
+			}
+		}
+	}
+
+	return xmlhttp; // retorna uma instancia XMLHttpRequest
+}
+        function setValue(v){
+                    document.getElementById("index").value=v;
+
+        }
+	function savequiz(e,i,v){
+		    e.preventDefault();
+		    var dados = {};
+		    dados.indexresp=i;
+		    dados.resp=v;
+		    dados.index=document.getElementById("index").value;
+                    setValue(document.getElementById("index").value);
+
+                    var queryString= 'index='+dados.index+'&indexresp=' + dados.indexresp + '&resp=' + dados.resp;
+                    console.log(queryString);
+                    var url = '/quiz/';
+                    var ajax = getXMLRequest(); // pegando uma instancia do objeto XMLHttpRequest
+                    if (!ajax) { // se o browser n„o tiver suporte
+                      alert("browser sem suporte.");
+                      return false;
+                    }
+
+                  
+                    ajax.open("POST",url,true); // Metodo que envia a requisiÁ„o
+                    ajax.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+
+
+
+
+                    ajax.onreadystatechange = function() { // metodo atualizado durante todo o processo da requisiÁ„o
+                        console.log('enviou');
+                        if (ajax.readyState == 4) { // se o readyState for 4 a transaÁ„o foi finalizada.
+                          var retornoServer="";
+                          retornoServer=unescape(ajax.responseText.replace(/\+/g," "));
+                          var data = $.parseJSON(retornoServer);
+                          console.log(JSON.stringify(data));
+
+                                        var i=0;
+
+                                        $("#quizquestion").empty();
+                                        $("#ulformbutton").empty();
+                                        if(data.index > -1){
+                                            $("#quizimage").attr("src",data.perguntas.img);
+                                            $("#quizquestion").append(data.perguntas.question);
+
+                                            console.log(data.perguntas.index);
+                                            console.log(data.perguntas.answers.length);
+                                            setValue(data.index);
+
+                                            //document.getElementById("index").value=data.index;
+                                            console.log("aqui 1: "+data.index);
+                                            //console.log("aqui 2: "+document.getElementById("index").value);
+                                                $.each(data.perguntas.answers,function(key, value)
+        					{
+        						var html = '<li><input class="btn btn-primary" name=indexresp type="hidden" value="'+data.perguntas.index+'" /> ';
+        						html = html+ '<input class="btn btn-block btn-primary text-answer" name=resp type="button" value="'+value+'" onclick="savequiz(event,'+i+',this.value);return false;" /> </li>';
+
+        						$("#ulformbutton").append(html);
+        						i++;
+        					});
+					}
+					else{
+                                            $("#quizquestion").append(data.message);
+                                         }
+
+
+                        }
+                  
+                    }
+                    ajax.send(queryString);  // para mandar variaveis via POST
+
+	}
+
+    </script>
   </head>
-  	<body onload='$("#loading").css("visibility", "visible");jQuery("body").addClass("loading");$(location).attr("href", "<%=loading %>");'>
+  	<body onload='$("#loading").css("visibility", "visible");jQuery("body").addClass("loading");'>
   	<div class="container-fluid batuta-container" id="question">
 		<div class="row">
 			<div class="col-md-6 col-sm-12">
-				<img src="<%= img %>" class="img-responsive" alt="Responsive image">
+				<img src="<%= img %>" id="quizimage" class="img-responsive" alt="Responsive image">
 		    	
 			</div>
 
 		<div class="col-md-6 col-sm-12">
 			<div class="batuta-card" style="min-height:100px">
-		    	<h1 class="frevo-title"><%= question %></h1>    	
+		    	<h1 class="frevo-title" id="quizquestion"><%= question %></h1>
 		    </div> 
 
-			<ul class="quiz-answer" >
-				<% answers.forEach(function(answer){ %>
-		<!-- 		<li><a class="btn btn-block btn-primary" href="#" role="button" id=1><%= answer %></a></li> -->
-					<li><form action="/quiz" method="post">
-						<input class="btn btn-primary" name=index type="hidden" value='<%= index %>'>
-						<input class="btn btn-block btn-primary text-answer" name=resp type="submit" value='<%= answer %>'> 
-					</form></li>
-
+                        <form action="/quiz" method="post" name="formquiz" onsubmit="return false;">
+						<input id="index" type="hidden" value="<%= index %>" />
+			<ul class="quiz-answer" id="ulformbutton" >
+				<% var i=0; %>
+                                <% answers.forEach(function(answer){ %>
+					<li>
+						<input class="btn btn-primary" name="indexresp" type="hidden" value="<%=i %>">
+						<input class="btn btn-block btn-primary text-answer" name="resp" type="button" value="<%= answer %>" onclick="savequiz(event,<%= i %>,'<%= answer %>');return false;">
+					</li>
+                                        <% i++ %>
 				<%})%>
 			</ul>
+			</form>
+			<ul class="quiz-answer" id="ulformbutton" >
+			      <li><input class="btn btn-block btn-primary text-answer" style="background-color:green;display:none;" name=avancar type="button" value='Avan√ßar' id='btnavancar' onclick='$(location).attr("href", "/playFrevo/");'/></li>
+			</ul>
+
+
 	    	</div>
+		        <div class="jumbotron jumbotron-fluid batuta-jumbo" style="overflow-y:scroll;height:200px;" >
+		            <p class="batuta-subtitle" style="color:#fff;font-size:14px;font-weight:bold;">Abaixo voc√™ pode visualizar como o Batuta est√° utilizando suas informa√ß√µes de facebook para poder dar um resultado mais assertivo e satisfat√≥rio.
+				<img src="/images/loading_logo.gif" id="imgloading" style="display:none;"/>
+			   </p>
+		            <p class="batuta-description" id="divfaceinfo" style="color:#fff;font-size:12px;">
+			    </p>
+		        </div>
+
     	</div>
     </div>
+
+
   </body>
 </html>

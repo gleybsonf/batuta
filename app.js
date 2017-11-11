@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
+var cors = require('cors');
 
 var bodyParser = require('body-parser');
 
@@ -12,7 +13,7 @@ var login = require('./routes/login');
 var politica = require('./routes/politica');
 
 var pi = require('./routes/pi');
-
+//var socket = null;
 //passport
 var passport = require('passport');
 var Strategy = require('passport-facebook').Strategy;
@@ -22,6 +23,7 @@ var mysql = require('mysql');
 var connection = require('express-myconnection');
 
 var app = express();
+app.use(cors()); 
 
 //configurações de conexão com BD
 app.use(
@@ -59,7 +61,7 @@ app.use(require('morgan')('combined'));
 app.use(logger('dev'));
 app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
 
 app.use(passport.initialize());
@@ -71,6 +73,21 @@ app.use('/login', login);
 app.use('/pi', pi);
 app.use('/politica', politica);
 
+  app.use(function(req, res, next){
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	res.header("Access-Control-Allow-Methods", "GET, POST, PUT");
+    var _send = res.send;
+    var sent = false;
+    res.send = function(data){
+        if(sent) return;
+        _send.bind(res)(data);
+        sent = true;
+    };
+    next();
+
+
+  });
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -90,6 +107,9 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+//function getSocket(){
+//	return socket;
+//}
 
 module.exports = app; 
 

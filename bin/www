@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('batuta:server');
 var http = require('http');
+var cors = require('cors');
 
 /**
  * Get port from environment and store in Express.
@@ -26,6 +27,14 @@ var server = http.createServer(app);
  */
 
 server.listen(port);
+    console.log('connected!');
+var io = require('socket.io').listen(server); // this tells socket.io to use our express server
+//app.socket=io;
+//app.set('socket', io);
+global.broadcast = io;
+
+//console.log(app.get('socket'));
+//console.log(global.io);
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -86,5 +95,12 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
+  console.log('Listening on ' + bind);
   debug('Listening on ' + bind);
 }
+
+
+//io.sockets.on('connection', function (socket) {
+//    console.log('A new user connected!');
+//    socket.emit('info', { msg: 'The world is round, there is no up or down.' });
+//});

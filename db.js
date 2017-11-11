@@ -1,3 +1,9 @@
+var request = require("request")
+var async = require("async");
+var express = require('express');
+var router = express.Router();
+
+var app = require ('./app.js');
 
 var sessionQuiz = 0;
 var index = 0;
@@ -6,7 +12,7 @@ var questionsQuiz = {
   "Perguntas": [
     {
       "img": "/images/frevo_cancao.jpg",
-      "loading": "/login/profile",
+      "loading": "login/profile",
       "index":0,
       "question": "Com qual frequencia você escuta frevo longe do carnaval  1",
       "answers": [
@@ -92,7 +98,28 @@ function getQuiz(req, res, next) {
 	req.session.index = 0;
 	req.session.save();
 	req.session.respostas = [];
-	res.render('quiz', questionsQuiz.Perguntas[req.session.index]);	
+	console.log('ANTES DO RENDER 2');
+
+    async.series([
+            function (callback) {
+
+                   var login = require('./routes/login'); 
+                   login.createSitemap(req, res, function () { console.log('sitemap');  });											
+
+
+                callback(null, null);
+            }],
+        function (err, res) {
+            if (err) {
+                return callback({"Error": true, "Message": "Error \n\n" + err});
+            }
+            // OK 
+        }
+    );
+	  
+	  res.render('quiz', questionsQuiz.Perguntas[req.session.index]);	
+  
+	console.log('DEPOIS DO RENDER 2');
 
 };
 
@@ -108,25 +135,33 @@ function montarJson(result){
 function saveAnswer(req,res,next){
 	//adiciona no array as respostas do usuário para ao fim do quiz armazenar todas as perguntas no quiz.
 	req.session.index = req.body.index;
+	req.session.indexresp = req.body.indexresp;
 	req.session.respostas.push(req.body.resp);
 	if (req.session.index == (questionsQuiz.qtdQuestions-1)) {
-		req.session.index = 0;
-		index = req.session.index;
-		req.session.save();
+		req.session.index=0;
 		req.session.respostas = [];
 		if (typeof(req.session.tipoFrevo) != 'undefined'){
-			res.redirect("/pi/match");
+			//res.redirect("/pi/match"); // COMENTADO PORQUE A PAGINA N PODE MAIS DAR RELOAD - THIAGO 09/11/2017
+			res.json({perguntas: questionsQuiz.Perguntas[req.session.index], index: -1, message:"Muito obrigado por participar da nossa pesquisa!"});
+
 		}else{
 			console.log("deu ruim, espera um pouco");
 			res.render('process');
 		}
+		index = req.session.index;
+		req.session.save();
 		
 		//res.render('playFrevo',{'imagem':'/images/frevo-de-rua.jpg',"idMusica":'0PIzeDHvE2l3fgp4p9HI18', 'nome':'Frevo-de-rua', 'descricao':'Primeiro gênero a surgir, é puramente instrumental e único no mundo. Este frevo é destinado a ser dançado.', 'modelo':null});
 	}else {
+		//res.render('quiz', questionsQuiz.Perguntas[req.session.index]);  // COMENTADO PORQUE A PAGINA N PODE MAIS DAR RELOAD - THIAGO 09/11/2017
+		
 		req.session.index++;
 		req.session.save();
 		index = req.session.index;
-		res.render('quiz', questionsQuiz.Perguntas[req.session.index]);
+
+		console.log(questionsQuiz.Perguntas[req.session.index]);
+		res.json({perguntas: questionsQuiz.Perguntas[req.session.index], index: req.session.index});
+		
 		//console.log(req.session.respostas);
 		
 	};

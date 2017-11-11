@@ -15,18 +15,25 @@ var musicasFrevoBloco = ['6Ven6hGS7ONOuDNG3WCRms','5qPyNVc3OSsJLaAKwkANJ8','5oH4
 var musicasFrevoCancao = ['01r1TXOzRhmPFJ1qFdy0Ax','7D1v9rENBmgoeCiXT2vrCN','1lvwdKXgfFZErlwiKYiChD','3vtCISVWQZDreIzsAyufYJ','1LkNpErgpMnVFZzh7kKOZa','4f43XXaORxjBnPW4mVlHZq','1fPJ4Afon3g8wOAhVpEMM5','7D1v9rENBmgoeCiXT2vrCN','0itxJkb4B6hStPE7hpAKbC'];
 var musicasFrevoRua = ['3BXoTlXoWihK4jhQAeT5kF','39evTS1QL9AAAUMDDC1XAR','5DuxbCgbDLxKeRr4X4gnsc','0JB5b0PrkPfj2MDB6duDT4','37fNq2yvRbx2XeDqn5xpyz','1xg50Vevonw9PPgQeQ1QeV'];
 var tradutor = require("./translate.js");
-
+/*
 var personality_insights = new PersonalityInsightsV3({
 	username: '79c9f7f5-3cc6-4912-a1bc-4ba8da5e5915',
 	password: 'qhD15EDix7WW',
 	version_date: '2016-10-20'
 });
+*/
+var personality_insights = new PersonalityInsightsV3({
+    username: '79c9f7f5-3cc6-4912-a1bc-4ba8da5e5915',
+    password: 'qhD15EDix7WW',
+    version_date: '2016-10-20'
+});
 
-
-
-function personalidade(req,res,itens, name){
+function personalidade(req,res,itens, name,socket){
 
 	console.log('personalidade ',itens);
+    socket.emit ('info', { data: 'Enviando os posts do Facebook para o IBM Personality Insights...'});
+	tipoFrevo = {'imagem':null,"idMusica":null, "modelo":null};
+
 	var texto_traduzido = tradutor.traduzir(itens, 
 	function(textoTraduzido) {
 
@@ -45,6 +52,8 @@ function personalidade(req,res,itens, name){
 			}
 		};
 
+	    socket.emit ('info', { data: 'Traduzindo informações...'});
+	    var frevoname = '';
 
 		personality_insights.profile(params, function(error, response) {
 			tipoFrevo = {'imagem':null,"idMusica":null, "modelo":null};
@@ -58,6 +67,7 @@ function personalidade(req,res,itens, name){
 						tipoFrevo.nome = "Frevo-de-rua";
 						tipoFrevo.descricao = "Primeiro gênero a surgir, é puramente instrumental e único no mundo. Este frevo é destinado a ser dançado.";
 						console.log('frevo rua');
+						frevoname='Frevo de Rua';
 						break;
 					case 1:
 						tipoFrevo.idMusica = musicasFrevoCancao[Math.floor(Math.random() * musicasFrevoCancao.length)];
@@ -65,6 +75,7 @@ function personalidade(req,res,itens, name){
 						tipoFrevo.nome = "Frevo-canção";
 						tipoFrevo.descricao = "Apresentando uma melodia mais cantável e andamento mais lento que o frevo-de-rua, este frevo é popular por grandes intérpretes e composições.";
 						console.log('frevo canção');
+						frevoname='Frevo Canção';
 						break;
 					case 2:
 						tipoFrevo.idMusica = musicasFrevoBloco[Math.floor(Math.random() * musicasFrevoBloco.length)];;
@@ -72,22 +83,32 @@ function personalidade(req,res,itens, name){
 						tipoFrevo.nome = "Frevo-de-bloco";
 						tipoFrevo.descricao = "Executado por orquestra de pau-e-cordas que tem seu aparecimento relacionado ao início da efetiva participação da mulher na folia de rua do Recife.";
 						console.log('frevo bloco');
+						frevoname='Frevo de Bloco';
 						break;
 					default:
 						console.log("deu algum erro");
 						break;
 				}
+				socket.emit ('info', { data: 'EUREKA! Seu frevo é: '+frevoname});
 				console.log("ela é frevo", random);
+		        response = {};
+				response.word_count=0;
+				tipoFrevo.modelo = response;
+				tipoFrevo.posts = req.session.qtdPosts;
 				req.session.tipoFrevo = tipoFrevo;
 				req.session.save();
-				res.render('playFrevo', tipoFrevo);
+				//res.render('playFrevo', tipoFrevo);
+				global.tipoFrevo=tipoFrevo;
+				socket.emit ('finish', { data: tipoFrevo});
+				socket.disconnect();
 
 
 
 			}else{
 				console.log(response);
+			    socket.emit ('watson', { data: response});
 				console.log('pq eu to chamando match?')
-				match(req, res, response, name);
+				match(req, res, response, name,socket);
 			}
 
 				//console.log(JSON.stringify(response, null, 2));
@@ -96,7 +117,7 @@ function personalidade(req,res,itens, name){
 	},
 	 function(err) {
 	 	random = Math.floor(Math.random() * 3);
-		switch (ramdom) {
+		switch (random) {
 			case 0:
 				tipoFrevo.idMusica = musicasFrevoRua[Math.floor(Math.random() * musicasFrevoRua.length)];
 				tipoFrevo.imagem = '/images/frevo-de-rua.jpg';
@@ -128,7 +149,7 @@ function personalidade(req,res,itens, name){
 };
 
 // função para comparar a personalidade do usuário com a das músicas.
-function match (req, res, arrayPersonalidade, name) {
+function match (req, res, arrayPersonalidade, name, socket) {
 	var diferençafr = null;
 	var diferençafc = null;
 	var diferençafb = null;
@@ -139,6 +160,7 @@ function match (req, res, arrayPersonalidade, name) {
 	tipoFrevo = {'imagem':null,"idMusica":null};
 	tipoFrevo.modelo = arrayPersonalidade;
 	// Faz o cálculo da diferença entre as características de cada frevo.
+	socket.emit ('info', { data: 'Definindo sua personalidade musical...'});
 	arrayPersonalidade.needs.forEach( function(element, index) {
 		diferenças = []
 		if(element.trait_id == 'need_excitement1' || element.trait_id == 'need_curiosity1'){
@@ -154,7 +176,7 @@ function match (req, res, arrayPersonalidade, name) {
 			diferençafb = diferençafb + fb;
 			diferenças.push(fb);
 			console.log('diferença bloco ', fb);
-
+			//socket.emit ('info', { data: 'Diferenças (frevo de rua, frevo canção, frevo de bloco'+diferenças});
 		}else{
 			var fr = Math.abs(element['raw_score'] - personalidadeRua['needs'][index]['raw_score']);
 			diferenças.push(fr);
@@ -168,6 +190,8 @@ function match (req, res, arrayPersonalidade, name) {
 			diferençafb = diferençafb + fb;
 			diferenças.push(fb);
 			console.log('diferença bloco ', fb);
+			//socket.emit ('info', { data: 'Diferenças (frevo de rua, frevo canção, frevo de bloco'+diferenças});
+
 		}
 
 		diferenças.sort();
@@ -189,6 +213,7 @@ function match (req, res, arrayPersonalidade, name) {
 			}
 		
 	});
+	socket.emit ('info', { data: 'Diferenças (frevo de rua, frevo canção, frevo de bloco'+diferenças});
 	console.log(diffb, diffr, diffc);
 	console.log('Frevo-de-bloco, Frevo-de-rua, frevo-cancao')
 	console.log(diferençafb,diferençafr, diferençafc);
@@ -197,7 +222,7 @@ function match (req, res, arrayPersonalidade, name) {
 	diferençafc = diferençafc - diffc/100;
 	console.log(' depois Frevo-de-bloco, Frevo-de-rua, frevo-cancao')
 	console.log(diferençafb,diferençafr, diferençafc);
-
+    var frevoname = '';
 	//console.log(Math.min(diferençafb, diferençafr, diferençafc));
 	menor = Math.min(diferençafb, diferençafr, diferençafc)
 	switch (menor) {
@@ -207,6 +232,7 @@ function match (req, res, arrayPersonalidade, name) {
 			tipoFrevo.nome = "Frevo-de-rua";
 			tipoFrevo.descricao = "Primeiro gênero a surgir, é puramente instrumental e único no mundo. Este frevo é destinado a ser dançado.";
 			console.log('frevo rua');
+			frevoname='Frevo de Rua';
 			break;
 		case diferençafc:
 			tipoFrevo.idMusica = musicasFrevoCancao[Math.floor(Math.random() * musicasFrevoCancao.length)];
@@ -214,6 +240,7 @@ function match (req, res, arrayPersonalidade, name) {
 			tipoFrevo.nome = "Frevo-canção";
 			tipoFrevo.descricao = "Apresentando uma melodia mais cantável e andamento mais lento que o frevo-de-rua, este frevo é popular por grandes intérpretes e composições.";
 			console.log('frevo canção');
+			frevoname='Frevo Canção';
 			break;
 		case diferençafb:
 			tipoFrevo.idMusica = musicasFrevoBloco[Math.floor(Math.random() * musicasFrevoBloco.length)];;
@@ -221,22 +248,29 @@ function match (req, res, arrayPersonalidade, name) {
 			tipoFrevo.nome = "Frevo-de-bloco";
 			tipoFrevo.descricao = "Executado por orquestra de pau-e-cordas que tem seu aparecimento relacionado ao início da efetiva participação da mulher na folia de rua do Recife.";
 			console.log('frevo bloco');
+			frevoname='Frevo de Bloco';
 			break;
 		default:
 			console.log("deu algum erro");
 			break;
 	};
+	socket.emit ('info', { data: 'EUREKA!   *O frevo que mais combina com você é: '+frevoname+'<br><br>* Baseado na análise de computação cognitiva IBM Watson'});
 
 	//console.log(tipoFrevo);
 	//console.log(personalidadeBloco['needs'][0]);
 	//res.send(tipoFrevo.modelo);
 	console.log('variaveil quiz');
-	console.log(name);
-	console.log(req.session.index);
+	//console.log(name);
+	//console.log(req.session.index);
 	tipoFrevo.posts = req.session.qtdPosts;
 	req.session.tipoFrevo = tipoFrevo;
 	req.session.save();
-	res.render('playFrevo', tipoFrevo);
+	//res.render('playFrevo', tipoFrevo);
+	//res.redirect('playFrevo', tipoFrevo);
+	//Error: Can't set headers after they are sent.
+	global.tipoFrevo=tipoFrevo;
+	socket.emit ('finish', { data: tipoFrevo});
+	socket.disconnect();
 
 	
 };
